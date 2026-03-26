@@ -20,7 +20,12 @@ if not all([GITHUB_TOKEN, DEEPSEEK_API_KEY, TARGET_REPO]):
     sys.exit(1)
 
 # GitHub API client – using the PAT
-g = Github(GITHUB_TOKEN)
+# Instead of:
+# g = Github(GITHUB_TOKEN)
+
+# Use:
+auth = Auth.Token(GITHUB_TOKEN)
+g = Github(auth=auth)
 try:
     repo = g.get_repo(TARGET_REPO)
 except Exception as e:
@@ -28,7 +33,8 @@ except Exception as e:
     sys.exit(1)
 
 # Calculate date range
-since = datetime.datetime.utcnow() - datetime.timedelta(days=LOOKBACK_DAYS)
+# since = datetime.datetime.utcnow() - datetime.timedelta(days=LOOKBACK_DAYS)
+since = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=LOOKBACK_DAYS)
 print(f"Fetching PRs merged to {BRANCH} since {since.isoformat()}")
 
 # Get merged PRs
