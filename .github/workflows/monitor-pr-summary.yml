@@ -24,6 +24,16 @@ jobs:
       - name: Install dependencies
         run: pip install PyGithub requests
 
+      - name: Debug environment variables
+        run: |
+          echo "TARGET_REPO = $TARGET_REPO"
+          echo "GITHUB_TOKEN length = ${#GITHUB_TOKEN}"
+          echo "DEEPSEEK_API_KEY length = ${#DEEPSEEK_API_KEY}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.TARGET_REPO_TOKEN }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          TARGET_REPO: "rachana-visavadiya/testApiReference"
+
       - name: Run PR summary script
         env:
           # The PAT with read access to the target repo
