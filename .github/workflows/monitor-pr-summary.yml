@@ -1,20 +1,18 @@
-name: Monitor PR Summary (Centralised)
+name: Weekly PR Summary with DeepSeek
 
 on:
   schedule:
-    - cron: '0 9 * * 1'   # Monday 9:00 UTC – adjust to your IST preference
-  workflow_dispatch:        # manual trigger
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
 
 permissions:
-  contents: read          # only needed for checking out the automation repo itself
+  contents: read
 
 jobs:
-  generate-summary:
+  summary:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,53 +22,13 @@ jobs:
       - name: Install dependencies
         run: pip install PyGithub requests
 
-      - name: Debug environment variables
-        run: |
-          echo "TARGET_REPO = $TARGET_REPO"
-          echo "GITHUB_TOKEN length = ${#GITHUB_TOKEN}"
-          echo "DEEPSEEK_API_KEY length = ${#DEEPSEEK_API_KEY}"
+      - name: Generate PR summary with DeepSeek
         env:
           GITHUB_TOKEN: ${{ secrets.TARGET_REPO_TOKEN }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           TARGET_REPO: "rachana-visavadiya/testApiReference"
-
-      - name: Run PR summary script
-        env:
-          # The PAT with read access to the target repo
-          GITHUB_TOKEN: ${{ secrets.TARGET_REPO_TOKEN }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          # Specify the repo you want to monitor
-          TARGET_REPO: "rachana-visavadiya/testApiReference"   # ← CHANGE THIS
         run: python .github/scripts/deepseek_pr_summary.py
-
-      - name: Send test message to Rocket.Chat
-        env:
-          ROCKETCHAT_WEBHOOK: ${{ secrets.ROCKETCHAT_WEBHOOK }}
-        run: |
-          curl -X POST -H 'Content-Type: application/json' \
-            -d '{"text":"Test from GitHub Actions"}' \
-            --write-out "\nHTTP Status: %{http_code}\n" \
-            --verbose \
-            $ROCKETCHAT_WEBHOOK
-
       - name: Send to Rocket.Chat
         env:
           ROCKETCHAT_WEBHOOK: ${{ secrets.ROCKETCHAT_WEBHOOK }}
-        run: |
-          if [ -f pr_summary.md ]; then
-            echo "Summary file content (first 10 lines):"
-            head -n 10 pr_summary.md
-            echo ""
-            MESSAGE=$(jq -Rs . < pr_summary.md)
-            PAYLOAD=$(jq -n --arg msg "$MESSAGE" '{"text": $msg}')
-            echo "Sending payload:"
-            echo "$PAYLOAD"
-            curl -X POST -H 'Content-Type: application/json' \
-              --data "$PAYLOAD" \
-              --write-out "\nHTTP Status: %{http_code}\n" \
-              --verbose \
-              "$ROCKETCHAT_WEBHOOK"
-          else
-            echo "No summary file generated."
-            exit 1
-          fi
+        run: python .github/scripts/send_to_rocketchat.py
