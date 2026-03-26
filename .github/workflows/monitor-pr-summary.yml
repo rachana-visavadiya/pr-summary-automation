@@ -1,0 +1,46 @@
+name: Monitor PR Summary (Centralised)
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # Monday 9:00 UTC – adjust to your IST preference
+  workflow_dispatch:        # manual trigger
+
+permissions:
+  contents: read          # only needed for checking out the automation repo itself
+
+jobs:
+  generate-summary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install PyGithub requests
+
+      - name: Run PR summary script
+        env:
+          # The PAT with read access to the target repo
+          GITHUB_TOKEN: ${{ secrets.TARGET_REPO_TOKEN }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          # Specify the repo you want to monitor
+          TARGET_REPO: "owner/name-of-repo"   # ← CHANGE THIS
+        run: python .github/scripts/deepseek_pr_summary.py
+
+      - name: Send to Rocket.Chat
+        env:
+          ROCKETCHAT_WEBHOOK: ${{ secrets.ROCKETCHAT_WEBHOOK }}
+        run: |
+          if [ -f pr_summary.md ]; then
+            curl -X POST -H 'Content-Type: application/json' \
+              -d "{\"text\": \"$(cat pr_summary.md | sed 's/"/\\"/g')\"}" \
+              $ROCKETCHAT_WEBHOOK
+          else
+            echo "No summary file generated."
+          fi
