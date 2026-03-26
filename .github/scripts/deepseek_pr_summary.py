@@ -4,7 +4,7 @@ import sys
 import json
 import datetime
 import requests
-from github import Github
+from github import Github, Auth
 
 # ---------- CONFIGURATION ----------
 BRANCH = "main"               # Branch to monitor in the target repo
