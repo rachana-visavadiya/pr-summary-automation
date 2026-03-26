@@ -58,9 +58,19 @@ jobs:
           ROCKETCHAT_WEBHOOK: ${{ secrets.ROCKETCHAT_WEBHOOK }}
         run: |
           if [ -f pr_summary.md ]; then
+            echo "Summary file content (first 10 lines):"
+            head -n 10 pr_summary.md
+            echo ""
+            MESSAGE=$(jq -Rs . < pr_summary.md)
+            PAYLOAD=$(jq -n --arg msg "$MESSAGE" '{"text": $msg}')
+            echo "Sending payload:"
+            echo "$PAYLOAD"
             curl -X POST -H 'Content-Type: application/json' \
-              -d "{\"text\": \"$(cat pr_summary.md | sed 's/"/\\"/g')\"}" \
-              $ROCKETCHAT_WEBHOOK
+              --data "$PAYLOAD" \
+              --write-out "\nHTTP Status: %{http_code}\n" \
+              --verbose \
+              "$ROCKETCHAT_WEBHOOK"
           else
             echo "No summary file generated."
+            exit 1
           fi
