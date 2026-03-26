@@ -7,13 +7,13 @@ import requests
 from github import Github
 
 # ---------- CONFIGURATION ----------
-BRANCH = "develop"               # Branch to monitor in the target repo
+BRANCH = "main"               # Branch to monitor in the target repo
 LOOKBACK_DAYS = 7
 # ----------------------------------
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")      # This is the PAT we stored
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
-TARGET_REPO = os.getenv("TARGET_REPO")        # e.g., "owner/repo"
+TARGET_REPO = os.getenv("rachana-visavadiya/testApiReference")        # e.g., "owner/repo"
 
 if not all([GITHUB_TOKEN, DEEPSEEK_API_KEY, TARGET_REPO]):
     print("Missing environment variables")
