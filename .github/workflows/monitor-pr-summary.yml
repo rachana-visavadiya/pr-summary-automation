@@ -43,6 +43,16 @@ jobs:
           TARGET_REPO: "rachana-visavadiya/testApiReference"   # ← CHANGE THIS
         run: python .github/scripts/deepseek_pr_summary.py
 
+      - name: Send test message to Rocket.Chat
+        env:
+          ROCKETCHAT_WEBHOOK: ${{ secrets.ROCKETCHAT_WEBHOOK }}
+        run: |
+          curl -X POST -H 'Content-Type: application/json' \
+            -d '{"text":"Test from GitHub Actions"}' \
+            --write-out "\nHTTP Status: %{http_code}\n" \
+            --verbose \
+            $ROCKETCHAT_WEBHOOK
+
       - name: Send to Rocket.Chat
         env:
           ROCKETCHAT_WEBHOOK: ${{ secrets.ROCKETCHAT_WEBHOOK }}
