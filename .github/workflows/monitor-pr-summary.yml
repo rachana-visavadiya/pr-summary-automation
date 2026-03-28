@@ -26,7 +26,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TARGET_REPO_TOKEN }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          TARGET_REPO: "rachana-visavadiya/testApiReference"
+          TARGET_REPO: "RocketChat/Rocket.Chat"
         run: python .github/scripts/deepseek_pr_summary.py
       - name: Send to Rocket.Chat
         env:
